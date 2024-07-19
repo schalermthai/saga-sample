@@ -4,7 +4,6 @@ namespace SBWorkflow;
 
 public class BookingActivity : IStateMachineActivity<BookingState, PaymentRequestedEvent>
 {
-
     public void Probe(ProbeContext context)
     {
     }
