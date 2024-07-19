@@ -38,17 +38,10 @@ public class BookingController(ILoadSagaRepository<BookingState> inMemorySagaRep
         return Ok();
     }
     
-    [HttpPost("/{orderId}/commit")]
-    public async Task<IActionResult> Commit(Guid orderId)
-    {
-        await publishEndpoint.Publish(new BookingCommitedEvent() { CorrelationId = orderId});
-        return Ok();
-    }
-    
     [HttpPost("/{orderId}/payment")]
     public async Task<IActionResult> Payment(Guid orderId)
     {
-        await publishEndpoint.Publish(new PaymentCompletedEvent() { CorrelationId = orderId, PaymentStatus = "Success"});
+        await publishEndpoint.Publish(new PaymentRequestedEvent() { CorrelationId = orderId});
         return Ok();
     }
     
