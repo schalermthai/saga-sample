@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeatsInventory", "SeatsInventory\SeatsInventory.csproj", "{3FD84D0A-E34E-45C0-9370-6BDB0E55C407}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeatsAPI", "SeatsAPI\SeatsAPI.csproj", "{3FD84D0A-E34E-45C0-9370-6BDB0E55C407}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookingAPI", "BookingAPI\BookingAPI.csproj", "{08455770-8895-42F9-B79E-69B71167D2BC}"
 EndProject
