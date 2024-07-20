@@ -1,6 +1,6 @@
 using MassTransit;
 
-namespace SBWorkflow.Payments.Activities;
+namespace BookingAPI.Activities.Payments;
 
 public class CreatePaymentActivity(IHttpClientFactory httpClientFactory)
     : IActivity<CreatePaymentArguments, CreatePaymentLog>

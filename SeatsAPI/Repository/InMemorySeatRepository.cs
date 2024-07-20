@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using SBWorkflow.Seats.Domain;
+using SeatsInventory.Domain;
 
 namespace SeatsInventory.Repository;
 

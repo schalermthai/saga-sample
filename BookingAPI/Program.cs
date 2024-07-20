@@ -1,8 +1,8 @@
+using BookingAPI.Activities.Payments;
 using BookingAPI.Activities.Seats;
+using BookingAPI.Domain;
+using BookingAPI.StateMachine;
 using MassTransit;
-using SBWorkflow.Booking.Domain;
-using SBWorkflow.Booking.StateMachine;
-using SBWorkflow.Payments.Activities;
 
 var builder = WebApplication.CreateBuilder(args);
 

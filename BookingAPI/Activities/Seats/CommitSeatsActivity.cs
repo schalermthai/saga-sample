@@ -1,5 +1,4 @@
 using MassTransit;
-using SBWorkflow.Seats.Domain;
 
 namespace BookingAPI.Activities.Seats;
 
@@ -16,12 +15,6 @@ public class CommitSeatsActivity(IHttpClientFactory httpClientFactory)
 
             if (!response.IsSuccessStatusCode)
                 throw new InvalidOperationException($"Failed to commit seat {seat}");
-
-            await context.Publish(new SeatCommitted
-            {
-                SeatLabel = seat,
-                Timestamp = DateTime.UtcNow
-            });
         }
 
         return context.CompletedWithVariables(new { SelectedSeats = context.Arguments.SelectedSeats });
@@ -35,12 +28,6 @@ public class CommitSeatsActivity(IHttpClientFactory httpClientFactory)
 
             if (!response.IsSuccessStatusCode)
                 throw new InvalidOperationException($"Failed to reopen seat {seat}");
-
-            await context.Publish(new SeatReOpened
-            {
-                SeatLabel = seat,
-                Timestamp = DateTime.UtcNow
-            });
         }
         
         return context.Compensated();

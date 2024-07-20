@@ -1,7 +1,7 @@
+using BookingAPI.Domain;
 using MassTransit;
-using SBWorkflow.Booking.Domain;
 
-namespace SBWorkflow.Booking.Activities;
+namespace BookingAPI.Activities.Booking;
 
 public class MakeBookingActivity : IStateMachineActivity<BookingState, PaymentRequestedEvent>
 {

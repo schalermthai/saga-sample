@@ -1,9 +1,9 @@
-namespace SBWorkflow.Payments.Domain;
+namespace PaymentAPI.Domain;
 
 public interface IPaymentRepository
 {
-    Task<Payment?> GetPaymentAsync(Guid paymentId);
-    Task AddPaymentAsync(Payment payment);
-    Task UpdatePaymentAsync(Payment payment);
+    Task<Payment?> GetAsync(Guid paymentId);
+    Task CreateAsync(Payment payment);
+    Task UpdateAsync(Payment payment);
     Task<bool> PaymentExistsAsync(Guid paymentId);
 }

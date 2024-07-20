@@ -1,7 +1,7 @@
 using MassTransit;
-using SBWorkflow.Seats.Domain;
-using SBWorkflow.Seats.Seeder;
+using SeatsInventory.Domain;
 using SeatsInventory.Repository;
+using SeatsInventory.Seeder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +17,6 @@ builder.Services.AddHostedService<SeatSeederHostedService>();
 
 builder.Services.AddMassTransit(x =>
 {
-    
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("localhost", h =>
@@ -28,7 +27,6 @@ builder.Services.AddMassTransit(x =>
 
         cfg.ConfigureEndpoints(context);
     });
-    
 });
 
 builder.Services.AddControllers();

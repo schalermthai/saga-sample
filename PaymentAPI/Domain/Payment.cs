@@ -1,5 +1,4 @@
-namespace SBWorkflow.Payments.Domain;
-using System;
+namespace PaymentAPI.Domain;
 
 public class Payment(Guid bookingId, decimal amount)
 {

@@ -1,11 +1,12 @@
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
-using SBWorkflow.Seats.Domain;
+using SeatsInventory.Domain;
 
-namespace SBWorkflow.Seats.Controller
+namespace SeatsInventory.Controller
 {
     [ApiController]
     [Route("api/seats")]
-    public class SeatsInventoryController(ISeatRepository seatRepository) : ControllerBase
+    public class SeatsInventoryController(ISeatRepository seatRepository, IPublishEndpoint publishEndpoint) : ControllerBase
     {
         [HttpPost("{label}/reserve")]
         public async Task<IActionResult> ReserveSeat(string label)
@@ -20,6 +21,7 @@ namespace SBWorkflow.Seats.Controller
             {
                 seat.Reserve();
                 await seatRepository.UpdateSeatAsync(seat);
+                await publishEndpoint.Publish(new SeatReserved() { SeatLabel = label, Timestamp = DateTime.UtcNow});
                 return Ok(new { Success = true });
             }
             catch (InvalidOperationException ex)
@@ -41,6 +43,7 @@ namespace SBWorkflow.Seats.Controller
             {
                 seat.Release();
                 await seatRepository.UpdateSeatAsync(seat);
+                await publishEndpoint.Publish(new SeatReleased() { SeatLabel = label, Timestamp = DateTime.UtcNow});
                 return Ok(new { Success = true });
             }
             catch (InvalidOperationException ex)
@@ -62,6 +65,7 @@ namespace SBWorkflow.Seats.Controller
             {
                 seat.Commit();
                 await seatRepository.UpdateSeatAsync(seat);
+                await publishEndpoint.Publish(new SeatCommitted() { SeatLabel = label, Timestamp = DateTime.UtcNow});
                 return Ok(new { Success = true });
             }
             catch (InvalidOperationException ex)
@@ -83,6 +87,7 @@ namespace SBWorkflow.Seats.Controller
             {
                 seat.ReOpen();
                 await seatRepository.UpdateSeatAsync(seat);
+                await publishEndpoint.Publish(new SeatReOpened() { SeatLabel = label, Timestamp = DateTime.UtcNow});
                 return Ok(new { Success = true });
             }
             catch (InvalidOperationException ex)

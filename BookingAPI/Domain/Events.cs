@@ -1,4 +1,4 @@
-namespace SBWorkflow.Booking.Domain;
+namespace BookingAPI.Domain;
 
 
 public class OrderCreatedEvent

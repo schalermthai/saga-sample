@@ -1,6 +1,6 @@
 using MassTransit;
 
-namespace SBWorkflow.Booking.Domain;
+namespace BookingAPI.Domain;
 
 public class BookingState : SagaStateMachineInstance
 {

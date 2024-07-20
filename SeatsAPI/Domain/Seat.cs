@@ -1,4 +1,4 @@
-namespace SBWorkflow.Seats.Domain;
+namespace SeatsInventory.Domain;
 
 public class Seat
 {

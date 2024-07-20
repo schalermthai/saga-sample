@@ -1,6 +1,4 @@
-namespace SBWorkflow.Seats.Domain;
-
-using System.Threading.Tasks;
+namespace SeatsInventory.Domain;
 
 public interface ISeatRepository
 {

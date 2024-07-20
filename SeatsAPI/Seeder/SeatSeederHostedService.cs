@@ -1,4 +1,4 @@
-namespace SBWorkflow.Seats.Seeder;
+namespace SeatsInventory.Seeder;
 
 public class SeatSeederHostedService(IServiceProvider serviceProvider) : IHostedService
 {

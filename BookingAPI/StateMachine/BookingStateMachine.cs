@@ -1,8 +1,8 @@
+using BookingAPI.Activities.Booking;
+using BookingAPI.Domain;
 using MassTransit;
-using SBWorkflow.Booking.Activities;
-using SBWorkflow.Booking.Domain;
 
-namespace SBWorkflow.Booking.StateMachine;
+namespace BookingAPI.StateMachine;
 
 public class BookingStateMachine : MassTransitStateMachine<BookingState>
 {

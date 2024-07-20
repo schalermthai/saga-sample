@@ -1,6 +1,6 @@
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
-using SBWorkflow.Payments.Domain;
+using PaymentAPI.Domain;
 
 namespace PaymentAPI.Controller
 {
@@ -13,16 +13,18 @@ namespace PaymentAPI.Controller
         public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentRequest request)
         {
             var payment = new Payment(request.BookingId, request.Amount);
-
             try
             {
-                await paymentRepository.AddPaymentAsync(payment);
+                payment.Authorize();
                 if (payment.State == PaymentState.Failed)
                 {
                     return BadRequest("Payment creation failed due to amount exceeding limit.");
                 }
-
-                return Ok(new { Success = true, PaymentId = payment.PaymentId, Status = payment.State.ToString() });
+                
+                await paymentRepository.CreateAsync(payment);
+                await publishEndpoint.Publish(new PaymentCreated(payment));
+                
+                return Ok(Dto(payment));
             }
             catch (InvalidOperationException ex)
             {
@@ -33,7 +35,7 @@ namespace PaymentAPI.Controller
         [HttpPost("{paymentId}/complete")]
         public async Task<IActionResult> CompletePayment(Guid paymentId)
         {
-            var payment = await paymentRepository.GetPaymentAsync(paymentId);
+            var payment = await paymentRepository.GetAsync(paymentId);
             if (payment == null)
             {
                 return NotFound($"Payment {paymentId} not found.");
@@ -42,9 +44,11 @@ namespace PaymentAPI.Controller
             try
             {
                 payment.Complete();
-                await paymentRepository.UpdatePaymentAsync(payment);
+                await paymentRepository.UpdateAsync(payment);
+                await publishEndpoint.Publish(new PaymentCompleted(payment));
 
-                return Ok(new { Success = true, PaymentId = payment.PaymentId, Status = payment.State.ToString() });
+                return Ok(Dto(payment));
+
             }
             catch (InvalidOperationException ex)
             {
@@ -55,7 +59,7 @@ namespace PaymentAPI.Controller
         [HttpPost("{paymentId}/cancel")]
         public async Task<IActionResult> CancelPayment(Guid paymentId)
         {
-            var payment = await paymentRepository.GetPaymentAsync(paymentId);
+            var payment = await paymentRepository.GetAsync(paymentId);
             if (payment == null)
             {
                 return NotFound($"Payment {paymentId} not found.");
@@ -64,8 +68,10 @@ namespace PaymentAPI.Controller
             try
             {
                 payment.Cancel();
-                await paymentRepository.UpdatePaymentAsync(payment);
-                return Ok(new { Success = true, PaymentId = payment.PaymentId, Status = payment.State.ToString() });
+                await paymentRepository.UpdateAsync(payment);
+                await publishEndpoint.Publish(new PaymentCanceled(payment));
+                
+                return Ok(Dto(payment));
             }
             catch (InvalidOperationException ex)
             {
@@ -76,35 +82,32 @@ namespace PaymentAPI.Controller
         [HttpGet("{paymentId}")]
         public async Task<IActionResult> GetPaymentStatus(Guid paymentId)
         {
-            var payment = await paymentRepository.GetPaymentAsync(paymentId);
+            var payment = await paymentRepository.GetAsync(paymentId);
             if (payment == null)
             {
                 return NotFound($"Payment with ID {paymentId} not found.");
             }
-
-            var paymentDto = new PaymentDto
-            {
-                PaymentId = payment.PaymentId,
-                BookingId = payment.BookingId,
-                Amount = payment.Amount,
-                State = payment.State.ToString()
-            };
-
-            return Ok(paymentDto);
+            
+            return Ok(Dto(payment));
+        }
+        
+        private object? Dto(Payment payment)
+        {
+            return
+                new
+                {
+                    Success = true,
+                    PaymentId = payment.PaymentId,
+                    BookingId = payment.BookingId,
+                    Status = payment.State.ToString()
+                };
         }
     }
-
     public class CreatePaymentRequest
     {
         public Guid BookingId { get; set; }
         public decimal Amount { get; set; }
     }
 
-    public class PaymentDto
-    {
-        public Guid PaymentId { get; set; }
-        public Guid BookingId { get; set; }
-        public decimal Amount { get; set; }
-        public string State { get; set; }
-    }
+
 }

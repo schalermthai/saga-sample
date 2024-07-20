@@ -1,8 +1,8 @@
+using BookingAPI.Domain;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
-using SBWorkflow.Booking.Domain;
 
-namespace SBWorkflow.Booking.Controller;
+namespace BookingAPI.Controller;
 
 [ApiController]
 [Route("api/order")]

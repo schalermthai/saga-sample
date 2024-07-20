@@ -1,5 +1,4 @@
 using MassTransit;
-using SBWorkflow.Seats.Domain;
 
 namespace BookingAPI.Activities.Seats;
 
@@ -15,12 +14,6 @@ public class ReserveSeatsActivity(IHttpClientFactory httpClientFactory) : IActiv
 
             if (!response.IsSuccessStatusCode)
                 throw new InvalidOperationException($"Failed to reserve seat {seat}");
-            
-            await context.Publish(new SeatReserved
-            {
-                SeatLabel = seat,
-                Timestamp = DateTime.UtcNow
-            });
         }
 
         return context.CompletedWithVariables(new { SelectedSeats = context.Arguments.SelectedSeats});
@@ -34,12 +27,6 @@ public class ReserveSeatsActivity(IHttpClientFactory httpClientFactory) : IActiv
 
             if (!response.IsSuccessStatusCode)
                 throw new InvalidOperationException($"Failed to release seat {seat}");
-
-            await context.Publish(new SeatReleased
-            {
-                SeatLabel = seat,
-                Timestamp = DateTime.UtcNow
-            });
         }
 
         return context.Compensated();

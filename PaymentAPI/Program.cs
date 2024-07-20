@@ -1,6 +1,6 @@
 using MassTransit;
-using SBWorkflow.Payments.Domain;
-using SBWorkflow.Payments.Repository;
+using PaymentAPI.Domain;
+using PaymentAPI.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 

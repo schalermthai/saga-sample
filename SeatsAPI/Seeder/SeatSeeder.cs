@@ -1,6 +1,6 @@
-using SBWorkflow.Seats.Domain;
+using SeatsInventory.Domain;
 
-namespace SBWorkflow.Seats.Seeder;
+namespace SeatsInventory.Seeder;
 
 public class SeatSeeder(ISeatRepository seatRepository)
 {
