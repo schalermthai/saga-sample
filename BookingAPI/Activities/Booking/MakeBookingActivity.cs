@@ -1,15 +1,16 @@
 using BookingAPI.Domain;
 using MassTransit;
+using MassTransit.Courier.Contracts;
 
 namespace BookingAPI.Activities.Booking;
 
-public class MakeBookingActivity : IStateMachineActivity<BookingState, PaymentRequestedEvent>
+public class MakeBookingActivity : IStateMachineActivity<BookingState, PaymentSubmittedEvent>
 {
     public void Probe(ProbeContext context) { }
 
     public void Accept(StateMachineVisitor visitor) { }
 
-    public async Task Execute(BehaviorContext<BookingState, PaymentRequestedEvent> context, IBehavior<BookingState, PaymentRequestedEvent> next)
+    public async Task Execute(BehaviorContext<BookingState, PaymentSubmittedEvent> context, IBehavior<BookingState, PaymentSubmittedEvent> next)
     {
         var builder = new RoutingSlipBuilder(NewId.NextGuid());
 
@@ -33,17 +34,23 @@ public class MakeBookingActivity : IStateMachineActivity<BookingState, PaymentRe
             SelectedSeats = context.Saga.SelectedSeats,
             BookingId = context.Saga.CorrelationId
         });
+        
+        // Subscription for every event in the routing slip
+        builder.AddSubscription(new Uri("queue:routing-slip-events"), RoutingSlipEvents.All);
+
+        // Subscription specifically for the completed event
+        await builder.AddSubscription(new Uri("queue:routing-slip-completed"), RoutingSlipEvents.Completed, x => x.Send(new PaymentCompletedEvent() { CorrelationId = context.Saga.CorrelationId }));
 
         var routingSlip = builder.Build();
 
         await context.Execute(routingSlip);
 
-        await context.Publish(new PaymentCompletedEvent() { CorrelationId = context.Saga.CorrelationId });
+        // await context.Publish(new PaymentCompletedEvent() { CorrelationId = context.Saga.CorrelationId });
 
         await next.Execute(context);
     }
 
-    public async Task Faulted<TException>(BehaviorExceptionContext<BookingState, PaymentRequestedEvent, TException> context, IBehavior<BookingState, PaymentRequestedEvent> next) where TException : Exception
+    public async Task Faulted<TException>(BehaviorExceptionContext<BookingState, PaymentSubmittedEvent, TException> context, IBehavior<BookingState, PaymentSubmittedEvent> next) where TException : Exception
     {
         await next.Faulted(context);
     }

@@ -1,7 +1,7 @@
 namespace BookingAPI.Domain;
 
 
-public class OrderCreatedEvent
+public class BookingCreatedEvent
 {
     public Guid CorrelationId { get; set; }
     public int NumberOfSeats { get; set; }
@@ -25,7 +25,7 @@ public class ExtrasAddedEvent
     // Add properties for extras as needed
 }
 
-public class PaymentRequestedEvent
+public class PaymentSubmittedEvent
 {
     public Guid CorrelationId { get; set; }
     public decimal Amount { get; set; }

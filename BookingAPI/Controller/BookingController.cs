@@ -13,7 +13,7 @@ public class BookingController(ILoadSagaRepository<BookingState> inMemorySagaRep
     public async Task<IActionResult> CreateOrder(CreateRequest request)
     {
         var orderId = Guid.NewGuid();
-        await publishEndpoint.Publish(new OrderCreatedEvent() { CorrelationId = orderId, NumberOfSeats = request.NumberOfSeats });
+        await publishEndpoint.Publish(new BookingCreatedEvent() { CorrelationId = orderId, NumberOfSeats = request.NumberOfSeats });
 
         return Ok(orderId);
     }
@@ -42,7 +42,7 @@ public class BookingController(ILoadSagaRepository<BookingState> inMemorySagaRep
     [HttpPost("/{orderId}/payment")]
     public async Task<IActionResult> Payment(Guid orderId, PaymentRequest request)
     {
-        await publishEndpoint.Publish(new PaymentRequestedEvent() { CorrelationId = orderId, Amount = request.Amount});
+        await publishEndpoint.Publish(new PaymentSubmittedEvent() { CorrelationId = orderId, Amount = request.Amount});
         return Ok();
     }
     
