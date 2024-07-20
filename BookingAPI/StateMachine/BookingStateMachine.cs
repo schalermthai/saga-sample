@@ -47,13 +47,13 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
     {
         Initially(
     When(BookingCreatedEvent)
-        .Then(context => context.Saga.UpdateOnCreated(context.Message))
+        .Then(context => context.Saga.OnCreated(context.Message))
         .TransitionTo(Created)
         );
 
         During(Created,
             When(MovieSelectedEvent)
-                .Then(context => context.Saga.UpdateOnSelectedMovie(context.Message))
+                .Then(context => context.Saga.OnSelectedMovie(context.Message))
                 .TransitionTo(MovieSelected),
             When(BookingCancelledEvent)
                 .TransitionTo(BookingCancelled)
@@ -61,10 +61,10 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
 
         During(MovieSelected,
             When(MovieSelectedEvent)
-                .Then(context => context.Saga.UpdateOnSelectedMovie(context.Message))
+                .Then(context => context.Saga.OnSelectedMovie(context.Message))
                 .TransitionTo(MovieSelected),
             When(SeatsSelectedEvent)
-                .Then(context => context.Saga.UpdateOnSelectedSeats(context.Message))
+                .Then(context => context.Saga.OnSelectedSeats(context.Message))
                 .IfElse(context => context.Saga.SelectedSeats.Count == context.Saga.NumberOfSeats, 
                     binder => binder.TransitionTo(SeatsSelected), 
                     binder => binder.TransitionTo(MovieSelected)),
@@ -74,12 +74,12 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
 
         During(SeatsSelected,
             When(SeatsSelectedEvent)
-                .Then(context => context.Saga.UpdateOnSelectedSeats(context.Message))
+                .Then(context => context.Saga.OnSelectedSeats(context.Message))
                 .IfElse(context => context.Saga.SelectedSeats.Count == context.Saga.NumberOfSeats, 
                     binder => binder.TransitionTo(SeatsSelected), 
                     binder => binder.TransitionTo(MovieSelected)),
             When(ExtrasAddedEvent)
-                .Then(context => context.Saga.UpdateOnSelectedExtras(context.Message))
+                .Then(context => context.Saga.OnSelectedExtras(context.Message))
                 .TransitionTo(ExtrasAdded),
             When(BookingCancelledEvent)
                 .TransitionTo(BookingCancelled)
@@ -87,7 +87,7 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
 
         During(ExtrasAdded,
             When(ExtrasAddedEvent)
-                .Then(context => context.Saga.UpdateOnSelectedExtras(context.Message))
+                .Then(context => context.Saga.OnSelectedExtras(context.Message))
                 .TransitionTo(ExtrasAdded),
             When(PaymentSubmittedEvent)
                 .Activity(context => context.OfType<MakeBookingActivity>())
@@ -96,11 +96,11 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
 
         During(PaymentSubmitted, 
             When(PaymentCompletedEvent)
-                .Then(context => context.Saga.UpdateOnPaymentCompleted(context.Message))
+                .Then(context => context.Saga.OnPaymentCompleted(context.Message))
                 .TransitionTo(BookingCompleted)
                 .Finalize(),
             When(PaymentFailedEvent)
-                .Then(context => context.Saga.UpdateOnPaymentFailed(context.Message))
+                .Then(context => context.Saga.OnPaymentFailed(context.Message))
                 .TransitionTo(BookingFailed)
                 .Finalize()
         );
