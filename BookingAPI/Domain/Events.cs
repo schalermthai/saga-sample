@@ -1,4 +1,4 @@
-namespace SBWorkflow;
+namespace SBWorkflow.Booking.Domain;
 
 
 public class OrderCreatedEvent
@@ -25,17 +25,21 @@ public class ExtrasAddedEvent
     // Add properties for extras as needed
 }
 
-public class BookingCommitedEvent
+public class PaymentRequestedEvent
 {
     public Guid CorrelationId { get; set; }
+    public decimal Amount { get; set; }
 }
 
 public class PaymentCompletedEvent
 {
     public Guid CorrelationId { get; set; }
-    public string PaymentStatus { get; set; }
 }
 
+public class PaymentFailedEvent
+{
+    public Guid CorrelationId { get; set; }
+}
 public class BookingCancelledEvent
 {
     public Guid CorrelationId { get; set; }

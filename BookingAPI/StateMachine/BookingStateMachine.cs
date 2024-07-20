@@ -1,25 +1,27 @@
-namespace SBWorkflow;
-
-using System;
 using MassTransit;
+using SBWorkflow.Booking.Activities;
+using SBWorkflow.Booking.Domain;
+
+namespace SBWorkflow.Booking.StateMachine;
 
 public class BookingStateMachine : MassTransitStateMachine<BookingState>
 {
-    public State Create { get; private set; }
-    public State SelectingMovie { get; private set; }
-    public State SelectingSeats { get; private set; }
-    public State AddingExtras { get; private set; }
-    public State Committing { get; private set; }
-    public State ProcessingPayment { get; private set; }
-    public State CancellingBooking { get; private set; }
-
+    public State SelectingMovie { get; } = null!;
+    public State SelectingSeats { get; } = null!;
+    public State AddingExtras { get; } = null!;
+    public State RequestingPayment { get; } = null!;
+    public State ProcessingPayment { get; } = null!;
+    public State BookingCompleted { get; } = null!;
+    public State BookingFailed { get; } = null!;
+    public State BookingCancelled { get; } = null!;
 
     public Event<OrderCreatedEvent> BookingCreatedEvent { get; private set; }
     public Event<MovieSelectedEvent> MovieSelectedEvent { get; private set; }
     public Event<SeatsSelectedEvent> SeatsSelectedEvent { get; private set; }
     public Event<ExtrasAddedEvent> ExtrasAddedEvent { get; private set; }
-    public Event<BookingCommitedEvent> BookingCommitedEvent { get; private set; }
-    public Event<PaymentCompletedEvent> PaymentProcessedEvent { get; private set; }
+    public Event<PaymentRequestedEvent> PaymentRequestedEvent { get; private set; }
+    public Event<PaymentCompletedEvent> PaymentCompletedEvent { get; private set; }
+    public Event<PaymentFailedEvent> PaymentFailedEvent { get; private set; }
     public Event<BookingCancelledEvent> BookingCancelledEvent { get; private set; }
 
     public BookingStateMachine()
@@ -31,8 +33,9 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
         Event(() => MovieSelectedEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
         Event(() => SeatsSelectedEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
         Event(() => ExtrasAddedEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
-        Event(() => BookingCommitedEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
-        Event(() => PaymentProcessedEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
+        Event(() => PaymentRequestedEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
+        Event(() => PaymentCompletedEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
+        Event(() => PaymentFailedEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
         Event(() => BookingCancelledEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
 
         Initially(
@@ -55,7 +58,7 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
                 })
                 .TransitionTo(SelectingSeats),
             When(BookingCancelledEvent)
-                .TransitionTo(CancellingBooking)
+                .TransitionTo(BookingCancelled)
         );
         
         During(SelectingSeats,
@@ -68,7 +71,7 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
                 .If(context => context.Saga.SelectedSeats.Count == context.Saga.NumberOfSeats, binder => binder.TransitionTo(AddingExtras))
                 .If(context => context.Saga.SelectedSeats.Count < context.Saga.NumberOfSeats, binder => binder.TransitionTo(SelectingSeats)),
             When(BookingCancelledEvent)
-                .TransitionTo(CancellingBooking)
+                .TransitionTo(BookingCancelled)
         );
         
         During(AddingExtras,
@@ -78,28 +81,35 @@ public class BookingStateMachine : MassTransitStateMachine<BookingState>
                     context.Saga.SelectedExtras = context.Message.SelectedExtras;
                     context.Saga.LastUpdated = DateTime.UtcNow;
                 })
-                .TransitionTo(Committing),
+                .TransitionTo(RequestingPayment),
             When(BookingCancelledEvent)
-                .TransitionTo(CancellingBooking)
+                .TransitionTo(BookingCancelled)
         );
-        
-        During(Committing,
-            When(BookingCommitedEvent)
-                .Then(context =>
-                {
-                    context.Saga.LastUpdated = DateTime.UtcNow;
-                })
+
+        During(RequestingPayment,
+            When(PaymentRequestedEvent)
+                .Activity(context => context.OfType<MakeBookingActivity>())
                 .TransitionTo(ProcessingPayment)
         );
 
-        During(ProcessingPayment,
-            When(PaymentProcessedEvent)
+        During(ProcessingPayment, 
+            When(PaymentCompletedEvent)
                 .Then(context =>
                 {
-                    context.Saga.PaymentStatus = context.Message.PaymentStatus;
+                    context.Saga.PaymentStatus = "Success";
                     context.Saga.LastUpdated = DateTime.UtcNow;
                 })
+                .TransitionTo(BookingCompleted)
+                .Finalize(),
+            When(PaymentFailedEvent)
+                .Then(context =>
+                {
+                    context.Saga.PaymentStatus = "Failed";
+                    context.Saga.LastUpdated = DateTime.UtcNow;
+                })
+                .TransitionTo(BookingFailed)
                 .Finalize()
-        );
+            );
+
     }
 }

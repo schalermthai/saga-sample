@@ -1,7 +1,8 @@
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
+using SBWorkflow.Booking.Domain;
 
-namespace SBWorkflow;
+namespace SBWorkflow.Booking.Controller;
 
 [ApiController]
 [Route("api/order")]
@@ -38,17 +39,10 @@ public class BookingController(ILoadSagaRepository<BookingState> inMemorySagaRep
         return Ok();
     }
     
-    [HttpPost("/{orderId}/commit")]
-    public async Task<IActionResult> Commit(Guid orderId)
-    {
-        await publishEndpoint.Publish(new BookingCommitedEvent() { CorrelationId = orderId});
-        return Ok();
-    }
-    
     [HttpPost("/{orderId}/payment")]
-    public async Task<IActionResult> Payment(Guid orderId)
+    public async Task<IActionResult> Payment(Guid orderId, PaymentRequest request)
     {
-        await publishEndpoint.Publish(new PaymentCompletedEvent() { CorrelationId = orderId, PaymentStatus = "Success"});
+        await publishEndpoint.Publish(new PaymentRequestedEvent() { CorrelationId = orderId, Amount = request.Amount});
         return Ok();
     }
     
@@ -88,4 +82,9 @@ public class SeatsRequest
 public class MovieRequest
 {
     public string MovieId { get; set; }
+}
+
+public class PaymentRequest
+{
+    public decimal Amount { get; set; }
 }

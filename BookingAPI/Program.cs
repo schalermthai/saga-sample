@@ -1,32 +1,14 @@
+using BookingAPI.Activities.Seats;
 using MassTransit;
 using SBWorkflow.Booking.Domain;
 using SBWorkflow.Booking.StateMachine;
 using SBWorkflow.Payments.Activities;
-using SBWorkflow.Seats.Activities;
-using SBWorkflow.Seats.Domain;
-using SBWorkflow.Seats.Repository;
-using SBWorkflow.Seats.Seeder;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Seats related
-builder.Services.AddSingleton<ISeatRepository, InMemorySeatRepository>();
-builder.Services.AddTransient<SeatSeeder>();
-builder.Services.AddHostedService<SeatSeederHostedService>();
-
-builder.Services.AddHttpClient("SeatService", c =>
-{
-    c.BaseAddress = new Uri("https://localhost:5229/");
-});
-builder.Services.AddHttpClient("PaymentService", c =>
-{
-    c.BaseAddress = new Uri("https://localhost:5229/");
-});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-builder.Services.AddControllers();
 
 builder.Services.AddMassTransit(x =>
 {
@@ -46,13 +28,24 @@ builder.Services.AddMassTransit(x =>
     });
     
     x.AddActivity<ReserveSeatsActivity, ReserveSeatsArguments, ReserveSeatsLog>();
-    x.AddActivity<CreatePaymentActivity, CreatePaymentArguments, CreatePaymentLog>();
     x.AddActivity<CommitSeatsActivity, CommitSeatsArguments, CommitSeatsLog>();
+    x.AddActivity<CreatePaymentActivity, CreatePaymentArguments, CreatePaymentLog>();
+});
+
+builder.Services.AddHttpClient("PaymentService", c =>
+{
+    c.BaseAddress = new Uri("http://localhost:5255/");
+});
+
+builder.Services.AddHttpClient("SeatService", c =>
+{
+    c.BaseAddress = new Uri("http://localhost:5179/");
 });
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSession();
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
